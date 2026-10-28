@@ -1,0 +1,162 @@
+[
+ {
+  "keyword": "SICK PRODUCTS & PAYROLL",
+  "category": "Income"
+ },
+ {
+  "keyword": "SICK PROD. CENTE",
+  "category": "Work Reimbursement"
+ },
+ {
+  "keyword": "BACKYARD WEB",
+  "category": "Utilities",
+  "max_cents": 169999
+ },
+ {
+  "keyword": "BACKYARD WEB",
+  "category": "Housing",
+  "min_cents": 170000
+ },
+ {
+  "keyword": "DIRECT DEP",
+  "category": "Income"
+ },
+ {
+  "keyword": "SAMS CLUB FUEL",
+  "category": "Transport"
+ },
+ {
+  "keyword": "SAMS CLUB.COM",
+  "category": "Shopping"
+ },
+ {
+  "keyword": "SAMS CLUB",
+  "category": "Groceries"
+ },
+ {
+  "keyword": "SAMS CLUB",
+  "category": "Transport",
+  "max_cents": 6000
+ },
+ {
+  "keyword": "SAMSCLUB",
+  "category": "Groceries"
+ },
+ {
+  "keyword": "SAMSCLUB",
+  "category": "Transport",
+  "max_cents": 6000
+ },
+ {
+  "keyword": "WAL-MART",
+  "category": "Groceries"
+ },
+ {
+  "keyword": "WM SUPERCENTER",
+  "category": "Groceries"
+ },
+ {
+  "keyword": "KWIK TRIP",
+  "category": "Transport"
+ },
+ {
+  "keyword": "CIRCLE K",
+  "category": "Transport"
+ },
+ {
+  "keyword": "SHELL SERVICE",
+  "category": "Transport"
+ },
+ {
+  "keyword": "HOLIDAY STATIONS",
+  "category": "Transport"
+ },
+ {
+  "keyword": "SPEEDWAY",
+  "category": "Transport"
+ },
+ {
+  "keyword": "NYCT PAYGO",
+  "category": "Transport"
+ },
+ {
+  "keyword": "METROTRAN",
+  "category": "Transport"
+ },
+ {
+  "keyword": "ZELLE TO MAMA",
+  "category": "Family Support"
+ },
+ {
+  "keyword": "QUANTUM FIBER",
+  "category": "Utilities"
+ },
+ {
+  "keyword": "XCEL ENERGY",
+  "category": "Utilities"
+ },
+ {
+  "keyword": "COMCAST",
+  "category": "Utilities"
+ },
+ {
+  "keyword": "XFINITY",
+  "category": "Utilities"
+ },
+ {
+  "keyword": "STATE FARM",
+  "category": "Insurance"
+ },
+ {
+  "keyword": "WAY2SAVE",
+  "category": "Savings"
+ },
+ {
+  "keyword": "EVERYDAY CHECKING",
+  "category": "Transfer"
+ },
+ {
+  "keyword": "CASH APP",
+  "category": "Transfer"
+ },
+ {
+  "keyword": "APPLE CASH",
+  "category": "Transfer"
+ },
+ {
+  "keyword": "AMERICAN EXPRESS ACH PMT",
+  "category": "Credit Card Payment"
+ },
+ {
+  "keyword": "AUTOPAY PAYMENT",
+  "category": "Credit Card Payment"
+ },
+ {
+  "keyword": "MOBILE PAYMENT - THANK YOU",
+  "category": "Credit Card Payment"
+ },
+ {
+  "keyword": "TRANSACTION FEE",
+  "category": "Fees"
+ },
+ {
+  "keyword": "MEMBERSHIP FEE",
+  "category": "Fees"
+ },
+ {
+  "keyword": "INTEREST PAYMENT",
+  "category": "Fees"
+ },
+ {
+  "keyword": "INT REMOVED",
+  "category": "Fees"
+ },
+ {
+  "keyword": "STEAM",
+  "category": "Entertainment"
+ },
+ {
+  "keyword": "AMAZON",
+  "category": "Shopping"
+ }
+]

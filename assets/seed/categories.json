@@ -1,0 +1,128 @@
+[
+ {
+  "name": "Income",
+  "kind": "income",
+  "color": "#43a047",
+  "description": "Payroll, direct deposits, salaries, or incoming cash transfers"
+ },
+ {
+  "name": "Work Reimbursement",
+  "kind": "reimbursement",
+  "color": "#00acc1",
+  "description": "Employer deposits that repay work expenses charged to the work credit card (SICK PROD. CENTE)"
+ },
+ {
+  "name": "Credit Card Payment",
+  "kind": "transfer",
+  "color": "#5d4037",
+  "description": "Payments made toward credit card accounts (Amex, Chase, etc.)"
+ },
+ {
+  "name": "Family Support",
+  "kind": "expense",
+  "color": "#8e24aa",
+  "description": "Zelle transfers to family members or relative support"
+ },
+ {
+  "name": "Savings",
+  "kind": "savings",
+  "color": "#1565c0",
+  "description": "Transfers into emergency funds, savings, or long-term accounts"
+ },
+ {
+  "name": "Charity/Donation",
+  "kind": "expense",
+  "color": "#2e7d32",
+  "description": "Mosques, masjids, charities, or non-profit donations"
+ },
+ {
+  "name": "Transfer",
+  "kind": "transfer",
+  "color": "#616161",
+  "description": "General online money transfers, Zelle, Venmo, or wire transfers"
+ },
+ {
+  "name": "Insurance",
+  "kind": "expense",
+  "color": "#c2185b",
+  "description": "Car, home, health, or life insurance (State Farm, Geico, etc.)"
+ },
+ {
+  "name": "Groceries",
+  "kind": "expense",
+  "color": "#558b2f",
+  "description": "Supermarkets, wholesale clubs (Sam's Club, Costco), and food markets"
+ },
+ {
+  "name": "Food & Dining",
+  "kind": "expense",
+  "color": "#388e3c",
+  "description": "Restaurants, cafes, coffee shops, fast food, and food delivery apps"
+ },
+ {
+  "name": "Transport",
+  "kind": "expense",
+  "color": "#ef6c00",
+  "description": "Fuel stations (Kwik Trip, Shell, BP), public transit, rideshares, parking"
+ },
+ {
+  "name": "Subscriptions",
+  "kind": "expense",
+  "color": "#6a1b9a",
+  "description": "Digital services, streaming (Netflix, Spotify, YouTube), software, or phone bills"
+ },
+ {
+  "name": "Utilities",
+  "kind": "expense",
+  "color": "#00838f",
+  "description": "Electric (Xcel Energy), internet (Quantum Fiber, Comcast), water, gas"
+ },
+ {
+  "name": "Healthcare",
+  "kind": "expense",
+  "color": "#d32f2f",
+  "description": "Pharmacies (CVS, Walgreens), medical clinics, and dental services"
+ },
+ {
+  "name": "Shopping",
+  "kind": "expense",
+  "color": "#1e6fd9",
+  "description": "Retail stores, clothing, electronics (Amazon, Best Buy, Target)"
+ },
+ {
+  "name": "Housing",
+  "kind": "expense",
+  "color": "#455a64",
+  "description": "Rent, mortgage, or home owner association (HOA) payments"
+ },
+ {
+  "name": "Travel",
+  "kind": "expense",
+  "color": "#26a69a",
+  "description": "Airlines, hotels, airbnbs, and travel bookings"
+ },
+ {
+  "name": "Entertainment",
+  "kind": "expense",
+  "color": "#f06292",
+  "description": "Movies, concerts, events, and entertainment venues"
+ },
+ {
+  "name": "Fees",
+  "kind": "expense",
+  "color": "#c62828",
+  "description": "Bank fees, interest charges, overdraft fees, or memberships"
+ },
+ {
+  "name": "Personal Care",
+  "kind": "expense",
+  "color": "#ad1457",
+  "description": "Hair salons, barbers, grooming, and personal care services"
+ },
+ {
+  "name": "Uncategorized",
+  "kind": "expense",
+  "color": "#9e9e9e",
+  "description": "Any transaction that does not clearly fit other categories"
+ }
+]
