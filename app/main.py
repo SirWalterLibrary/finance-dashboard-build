@@ -6,6 +6,7 @@ from fastapi.staticfiles import StaticFiles
 from .db import init_db
 from .routers import accounts as accounts_router
 from .routers import auth as auth_router
+from .routers import imports as imports_router
 
 
 def create_app() -> FastAPI:
@@ -13,6 +14,7 @@ def create_app() -> FastAPI:
     app = FastAPI(title="Finance Dashboard")
     app.include_router(auth_router.router)
     app.include_router(accounts_router.router)
+    app.include_router(imports_router.router)
 
     @app.get("/api/health")
     def health():
