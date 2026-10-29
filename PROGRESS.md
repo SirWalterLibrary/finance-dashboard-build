@@ -3,7 +3,7 @@
 ## Tasks
 - [x] T00 Scaffold
 - [x] T01 Database + seed
-- [ ] T02 Auth
+- [x] T02 Auth
 - [ ] T03 Scope + accounts API
 - [ ] T04 CSV parser
 - [ ] T05 Import endpoint
@@ -37,3 +37,4 @@
 ## Log
 - T00: scaffold done — assets copied, git init, app/config.py (env at call time), app/main.py (create_app + /api/health, static mount last), tests/conftest.py + test_health.py pass; `make dev` + curl verified.
 - T01: database + seed — copied assets/schema.sql + assets/seed/*.json into app/; app/db.py (connect with WAL/FKs, init_db runs schema then seeds categories+rules only when categories is empty); create_app() calls init_db(); tests/test_db.py (9 tables, seed counts match JSON, idempotent re-init, Uncategorized=expense) pass.
+- T02: auth — app/auth.py (scrypt hash salt$hash, token_urlsafe sessions expiring in 30 days, current_user dependency w/ expired-session pruning, in-memory rate limit 5/IP/5min), app/routers/auth.py (login/logout/me; sid cookie HttpOnly SameSite=Lax, secure per COOKIE_SECURE), scripts/create_user.py (getpass, works standalone/in docker), conftest gains make_user/login/user/user2; tests/test_auth.py (5 required + 3 extra) pass, live uvicorn smoke OK.
