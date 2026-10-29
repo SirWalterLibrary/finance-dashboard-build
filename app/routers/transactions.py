@@ -10,6 +10,8 @@ PATCH/DELETE on a transaction not visible to the caller (or unknown) -> 404.
 Money = integer cents; dates are ISO YYYY-MM-DD text.
 """
 
+from datetime import date
+
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
 
@@ -80,7 +82,7 @@ def _where(user: dict, scope: str, account_id: int | None, category_id: int | No
 
 @router.get("/transactions")
 def list_transactions(
-    scope: str = Query("combined"),
+    scope: str = Query("joint"),
     account_id: int | None = Query(None),
     category_id: int | None = Query(None),
     q: str | None = Query(None),
@@ -94,6 +96,12 @@ def list_transactions(
 ):
     if direction not in (None, *_DIRECTIONS):
         raise HTTPException(400, f"direction must be one of: {' | '.join(_DIRECTIONS)}")
+    for v in (from_, to):
+        if v is not None:
+            try:
+                date.fromisoformat(v)
+            except ValueError:
+                raise HTTPException(400, "from/to must be YYYY-MM-DD")
     if source not in (None, *_SOURCES):
         raise HTTPException(400, f"source must be one of: {' | '.join(_SOURCES)}")
     try:

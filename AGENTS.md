@@ -15,3 +15,6 @@ You are building "Finance Dashboard". ONE task per session. Stop when it is done
    `git add -A && git commit -m "T<id>: <short title>"`. Then stop.
 9. Blocked after 3 attempts: write the problem under Blockers in PROGRESS.md and stop. Do not improvise.
 10. Frontend tasks: also add the task's "USER CHECK" steps to PROGRESS.md under User Checks.
+11. Read only the files the task lists under "Read only"; read each file at most once. Do not read SPEC.md unless the task says to.
+12. Write the first test file within your first 8 tool calls. Do not deliberate at length: pick the simplest reading and note it in PROGRESS.md.
+13. If your context was compacted twice and you have written no file yet, STOP and write what blocked you under Blockers in PROGRESS.md.

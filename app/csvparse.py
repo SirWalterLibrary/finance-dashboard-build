@@ -81,7 +81,10 @@ def parse_csv(text, invert):
 
         try:
             cents = int(Decimal(raw_amount.replace("$", "").replace(",", "")) * 100)
-        except InvalidOperation:
+        except (InvalidOperation, ValueError, OverflowError):
+            errors.append(f"row {lineno}: bad amount {raw_amount!r}")
+            continue
+        if abs(cents) > 2**62:  # beyond SQLite INTEGER range
             errors.append(f"row {lineno}: bad amount {raw_amount!r}")
             continue
         if invert:

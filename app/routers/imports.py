@@ -33,7 +33,10 @@ def import_file(account_id: int, file: UploadFile, user: dict = Depends(current_
     con = connect()
     try:
         account = _require_visible(con, account_id, user)
-        text = data.decode("utf-8-sig")  # UTF-8, BOM tolerated
+        try:
+            text = data.decode("utf-8-sig")  # UTF-8, BOM tolerated
+        except UnicodeDecodeError:
+            raise HTTPException(400, "file must be UTF-8 text")
         rows, errors, skipped_pending = parse_csv(
             text, invert=account["invert_amounts"]
         )

@@ -130,6 +130,23 @@ def test_import_missing_file_422(client):
     assert res.status_code == 422
 
 
+def test_import_invalid_utf8_400(client):
+    _alice(client)
+    acct = client.post("/api/accounts", json={"name": "X", "type": "checking"}).json()["id"]
+    res = client.post(
+        f"/api/accounts/{acct}/import",
+        files={"file": ("bad.csv", b"\xff\xfe\x00bad", "text/csv")},
+    )
+    assert res.status_code == 400, res.text
+    from app.db import connect
+
+    con = connect()
+    try:
+        assert con.execute("SELECT COUNT(*) AS c FROM transactions").fetchone()["c"] == 0
+    finally:
+        con.close()
+
+
 def test_import_too_large_413(client):
     _alice(client)
     acct = client.post("/api/accounts", json={"name": "Big", "type": "checking"}).json()["id"]

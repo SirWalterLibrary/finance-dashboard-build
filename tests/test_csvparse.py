@@ -92,6 +92,18 @@ def test_bad_date_reported_not_fatal():
     assert "date" in errors[0].lower()
 
 
+def test_odd_amounts_reported_not_fatal():
+    text = ("DATE,DESCRIPTION,AMOUNT\n"
+            "09/30/2025,NAN,NaN\n"
+            "09/30/2025,INF,Infinity\n"
+            "09/30/2025,BIG,1e999\n"
+            "09/30/2025,GOOD,5.00\n")
+    rows, errors, _ = parse_csv(text, invert=False)
+    assert [r["description"] for r in rows] == ["GOOD"]
+    assert len(errors) == 3
+    assert all("amount" in e.lower() for e in errors)
+
+
 def test_bad_amount_reported_not_fatal():
     text = "DATE,DESCRIPTION,AMOUNT\n09/30/2025,NOPE,abc\n09/30/2025,OK,5.00\n"
     rows, errors, _ = parse_csv(text, invert=False)

@@ -183,6 +183,37 @@ def test_scope_visibility(client):
     assert client.get("/api/transactions?scope=bogus").status_code == 400
 
 
+def test_default_scope_is_joint(client):
+    _setup(client)
+    joint = _acct(client, "House", shared=True)
+    mine = _acct(client, "A Pouch", shared=False)
+    t_j = _add_tx(joint, -100, date="2026-01-01", desc="joint tx", n=0)
+    t_p = _add_tx(mine, -200, date="2026-01-02", desc="personal tx", n=1)
+
+    def ids():
+        return {i["id"] for i in client.get("/api/transactions").json()["items"]}
+
+    # no scope param -> default joint; personal accounts never leak
+    assert ids() == {t_j}
+
+    from conftest import login
+
+    login(client, "bob")
+    assert ids() == {t_j}
+
+
+def test_from_to_must_be_iso_date(client):
+    _setup(client)
+    a = _acct(client, "House", shared=True)
+    t = _add_tx(a, -100, date="2026-06-15", desc="mid year", n=0)
+
+    assert client.get("/api/transactions?from=banana").status_code == 400
+    assert client.get("/api/transactions?to=banana").status_code == 400
+    res = client.get("/api/transactions?from=2026-01-01&to=2026-12-31")
+    assert res.status_code == 200, res.text
+    assert {i["id"] for i in res.json()["items"]} == {t}
+
+
 def test_patch_sets_manual(client):
     _setup(client)
     a = _acct(client, "House", shared=True)
