@@ -42,7 +42,8 @@ def test_import_wf_then_again(client):
     assert body["skipped_pending"] == 1
     assert body["errors"] == []
 
-    # stored rows: all "Uncategorized", source none
+    # stored rows: rule-matched rows categorized as 'rule' (since T07),
+    # the rest still Uncategorized + none
     from app.db import connect
 
     con = connect()
@@ -57,7 +58,11 @@ def test_import_wf_then_again(client):
         }
     finally:
         con.close()
-    assert pairs == {("Uncategorized", "none")}
+    for name, source in pairs:
+        if source == "none":
+            assert name == "Uncategorized"
+    assert ("Transport", "rule") in pairs  # KWIK TRIP / SAMS CLUB rows
+    assert ("Income", "rule") in pairs  # SICK PRODUCTS & PAYROLL
 
 
 def test_import_amex_credit_inverts(client):
