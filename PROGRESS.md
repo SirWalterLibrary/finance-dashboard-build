@@ -2,7 +2,7 @@
 
 ## Tasks
 - [x] T00 Scaffold
-- [ ] T01 Database + seed
+- [x] T01 Database + seed
 - [ ] T02 Auth
 - [ ] T03 Scope + accounts API
 - [ ] T04 CSV parser
@@ -36,3 +36,4 @@
 
 ## Log
 - T00: scaffold done — assets copied, git init, app/config.py (env at call time), app/main.py (create_app + /api/health, static mount last), tests/conftest.py + test_health.py pass; `make dev` + curl verified.
+- T01: database + seed — copied assets/schema.sql + assets/seed/*.json into app/; app/db.py (connect with WAL/FKs, init_db runs schema then seeds categories+rules only when categories is empty); create_app() calls init_db(); tests/test_db.py (9 tables, seed counts match JSON, idempotent re-init, Uncategorized=expense) pass.

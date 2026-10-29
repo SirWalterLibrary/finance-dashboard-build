@@ -3,8 +3,11 @@ from pathlib import Path
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 
+from .db import init_db
+
 
 def create_app() -> FastAPI:
+    init_db()
     app = FastAPI(title="Finance Dashboard")
 
     @app.get("/api/health")
