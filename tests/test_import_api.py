@@ -42,27 +42,31 @@ def test_import_wf_then_again(client):
     assert body["skipped_pending"] == 1
     assert body["errors"] == []
 
-    # stored rows: rule-matched rows categorized as 'rule' (since T07),
-    # the rest still Uncategorized + none
+    # stored rows: the 8 rule-matched rows categorized with source 'rule',
+    # the eBay and CAREEM rows still Uncategorized + none
     from app.db import connect
 
     con = connect()
     try:
         assert con.execute("SELECT COUNT(*) AS c FROM transactions").fetchone()["c"] == 10
-        pairs = {
-            (r["n"], r["s"])
-            for r in con.execute(
-                "SELECT c.name AS n, t.category_source AS s FROM transactions t "
-                "JOIN categories c ON c.id = t.category_id"
-            )
-        }
+        counts = con.execute(
+            "SELECT c.name AS n, t.category_source AS s, COUNT(*) AS c "
+            "FROM transactions t "
+            "JOIN categories c ON c.id = t.category_id "
+            "GROUP BY c.name, t.category_source"
+        ).fetchall()
     finally:
         con.close()
-    for name, source in pairs:
-        if source == "none":
-            assert name == "Uncategorized"
-    assert ("Transport", "rule") in pairs  # KWIK TRIP / SAMS CLUB rows
-    assert ("Income", "rule") in pairs  # SICK PRODUCTS & PAYROLL
+    m = {(r["n"], r["s"]): r["c"] for r in counts}
+    assert m == {
+        ("Transport", "rule"): 2,              # SAMS CLUB #6312, KWIK TRIP
+        ("Income", "rule"): 1,                 # PAYROLL
+        ("Family Support", "rule"): 1,         # ZELLE TO MAMA
+        ("Credit Card Payment", "rule"): 1,    # AMERICAN EXPRESS ACH PMT
+        ("Groceries", "rule"): 2,              # the two WM SUPERCENTER rows
+        ("Fees", "rule"): 1,                   # INTERNATIONAL PURCHASE TRANSACTION FEE
+        ("Uncategorized", "none"): 2,          # eBay, CAREEM
+    }
 
 
 def test_import_amex_credit_inverts(client):
@@ -89,12 +93,27 @@ def test_import_amex_credit_inverts(client):
             r["a"]
             for r in con.execute("SELECT amount_cents AS a FROM transactions")
         ]
+        counts = con.execute(
+            "SELECT c.name AS n, t.category_source AS s, COUNT(*) AS c "
+            "FROM transactions t "
+            "JOIN categories c ON c.id = t.category_id "
+            "GROUP BY c.name, t.category_source"
+        ).fetchall()
     finally:
         con.close()
     # purchases are money out, the autopay is money in (signs flipped once)
     assert -72054 in amounts and 70497 in amounts and -7138 in amounts and -2014 in amounts
     # 8 rows stored: the two identical DELTA rows differ only by dedupe index
     assert len(amounts) == 8
+    # 4 rows rule-matched; the 3 DELTA rows and PARKWHIZ stay Uncategorized
+    m = {(r["n"], r["s"]): r["c"] for r in counts}
+    assert m == {
+        ("Shopping", "rule"): 1,          # SAMS CLUB.COM
+        ("Groceries", "rule"): 1,         # WAL-MART
+        ("Credit Card Payment", "rule"): 1,  # AUTOPAY PAYMENT
+        ("Transport", "rule"): 1,         # SAM'S CLUB FUEL
+        ("Uncategorized", "none"): 4,     # 3 DELTA rows + PARKWHIZ
+    }
 
 
 def test_import_other_users_personal_account_404(client):

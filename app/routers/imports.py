@@ -4,11 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, UploadFile
 from app.auth import current_user
 from app.csvparse import parse_csv
 from app.db import connect
-
-try:  # added by T07; until then imports skip rule application
-    from app import rules
-except ImportError:
-    rules = None
+from app import rules
 
 router = APIRouter(prefix="/api", tags=["imports"])
 
@@ -66,7 +62,7 @@ def import_file(account_id: int, file: UploadFile, user: dict = Depends(current_
                     tx_ids.append(cur.lastrowid)
                 else:
                     skipped_duplicates += 1
-        if tx_ids and rules is not None and hasattr(rules, "apply_rules"):
+        if tx_ids:
             rules.apply_rules(con, tx_ids)
     finally:
         con.close()

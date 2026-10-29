@@ -96,7 +96,9 @@ def test_list_shape_order_total(client):
     assert item["category_color"] == "#1565c0"
     assert item["category_source"] == "none"
     assert item["category_confidence"] is None
-    assert item["suggested_keyword"] == ""
+    from app import rules
+
+    assert item["suggested_keyword"] == rules.merchant_key(item["description"])
 
 
 def test_filters(client):

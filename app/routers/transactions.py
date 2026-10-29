@@ -18,6 +18,7 @@ from pydantic import BaseModel
 from app.auth import current_user
 from app.db import connect
 from app.scope import owner_clause
+from app import rules
 
 router = APIRouter(prefix="/api", tags=["transactions"])
 
@@ -42,8 +43,7 @@ def _item(tx: dict, acc_name: str, cat_name: str, cat_color: str) -> dict:
         "category_color": cat_color,
         "category_source": tx["category_source"],
         "category_confidence": tx["category_confidence"],
-        # T07 will wire rules.merchant_key; until then always ""
-        "suggested_keyword": "",
+        "suggested_keyword": rules.merchant_key(tx["description"]),
     }
 
 
