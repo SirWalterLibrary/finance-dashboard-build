@@ -4,7 +4,7 @@
 - [x] T00 Scaffold
 - [x] T01 Database + seed
 - [x] T02 Auth
-- [ ] T03 Scope + accounts API
+- [x] T03 Scope + accounts API
 - [ ] T04 CSV parser
 - [ ] T05 Import endpoint
 - [ ] T06 Transactions API
@@ -38,3 +38,4 @@
 - T00: scaffold done — assets copied, git init, app/config.py (env at call time), app/main.py (create_app + /api/health, static mount last), tests/conftest.py + test_health.py pass; `make dev` + curl verified.
 - T01: database + seed — copied assets/schema.sql + assets/seed/*.json into app/; app/db.py (connect with WAL/FKs, init_db runs schema then seeds categories+rules only when categories is empty); create_app() calls init_db(); tests/test_db.py (9 tables, seed counts match JSON, idempotent re-init, Uncategorized=expense) pass.
 - T02: auth — app/auth.py (scrypt hash salt$hash, token_urlsafe sessions expiring in 30 days, current_user dependency w/ expired-session pruning, in-memory rate limit 5/IP/5min), app/routers/auth.py (login/logout/me; sid cookie HttpOnly SameSite=Lax, secure per COOKIE_SECURE), scripts/create_user.py (getpass, works standalone/in docker), conftest gains make_user/login/user/user2; tests/test_auth.py (5 required + 3 extra) pass, live uvicorn smoke OK.
+- T03: scope + accounts — app/scope.py (owner_ids per SPEC scope rules; owner_clause NULL-safe, invalid scope -> ValueError -> 400), app/routers/accounts.py (GET/POST/DELETE; shared -> owner NULL else current user; invert_amounts=1 for credit; balance_cents = opening + sum(tx); tx_count; PUT /api/accounts/{id}/balance {current_balance_cents} sets opening = current - sum(tx); GET-by-id/PUT/DELETE of a not-visible account -> 404, no combined-scope leaks), included in main.py; tests/test_accounts.py (scope helpers incl. NULL-safety, privacy: A's personal account hidden from B in every scope + 404 DELETE by B, joint visible to both, default scope joint, bogus scope 400, POST defaults/invert_amounts/validation, balance math with opening + tx + PUT balance, delete cascade) — `make test` 21 passed.
