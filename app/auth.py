@@ -72,16 +72,24 @@ def current_user(request: Request) -> dict:
     return dict(row)
 
 
+def is_locked(ip: str) -> bool:
+    """True when >= FAIL_LIMIT failures are recorded for that ip inside the window."""
+    entry = _failures.get(ip)
+    if entry is None:
+        return False
+    if time.time() - entry[1] > FAIL_WINDOW:
+        return False
+    return entry[0] >= FAIL_LIMIT
+
+
 def _bump_failure(ip: str) -> None:
-    """Record a failed login; raise 429 once the limit is hit."""
+    """Record a failed login attempt for the given IP (never raises)."""
     now = time.time()
     entry = _failures.get(ip)
     if entry is None or now - entry[1] > FAIL_WINDOW:
         _failures[ip] = [1, now]
         return
     entry[0] += 1
-    if entry[0] > FAIL_LIMIT:
-        raise HTTPException(status_code=429, detail="too many failed logins")
 
 
 def reset_failures(ip: str) -> None:

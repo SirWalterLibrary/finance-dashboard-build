@@ -50,7 +50,7 @@ def test_me_without_cookie_401(client):
     assert client.get("/api/me").status_code == 401
 
 
-def test_sixth_bad_login_429(client):
+def test_lockout_after_five_failures_429(client):
     from conftest import make_user
 
     make_user(client, "bob", "right-pass")
@@ -58,7 +58,7 @@ def test_sixth_bad_login_429(client):
     for _ in range(6):
         res = client.post("/api/login", json={"username": "bob", "password": "wrong"})
     assert res.status_code == 429
-    # the limit is time-boxed, not permanent
+    # the lockout is time-boxed, not permanent
     import app.auth as auth
 
     for key in auth._failures:
@@ -66,6 +66,30 @@ def test_sixth_bad_login_429(client):
     assert client.post(
         "/api/login", json={"username": "bob", "password": "wrong"}
     ).status_code == 401
+
+
+def test_lockout_precedes_password_check(client):
+    from conftest import make_user
+
+    make_user(client, "bob", "right-pass")
+    # 5 wrong passwords -> 401 each
+    for _ in range(5):
+        res = client.post("/api/login", json={"username": "bob", "password": "wrong"})
+        assert res.status_code == 401
+        assert "sid" not in res.cookies
+    # now locked: even the CORRECT password is rejected with 429
+    res = client.post("/api/login", json={"username": "bob", "password": "right-pass"})
+    assert res.status_code == 429
+    assert "sid" not in res.cookies
+    assert client.get("/api/me").status_code == 401
+    # after the window expires, the correct password works again
+    import app.auth as auth
+
+    for key in auth._failures:
+        auth._failures[key][1] = time.time() - 301  # expire the window
+    res = client.post("/api/login", json={"username": "bob", "password": "right-pass"})
+    assert res.status_code == 200
+    assert "sid" in res.cookies
 
 
 def test_password_hash_roundtrip():

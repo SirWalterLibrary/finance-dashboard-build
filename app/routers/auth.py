@@ -16,6 +16,8 @@ class LoginBody(BaseModel):
 @router.post("/login")
 def login(body: LoginBody, request: Request, response: Response):
     client_ip = request.client.host if request.client else "unknown"
+    if auth.is_locked(client_ip):
+        raise HTTPException(status_code=429, detail="too many failed logins")
     row = None
     con = db.connect()
     try:
@@ -26,7 +28,7 @@ def login(body: LoginBody, request: Request, response: Response):
     finally:
         con.close()
     if row is None or not auth.verify_password(body.password, row["password_hash"]):
-        auth._bump_failure(client_ip)  # raises 429 past the limit
+        auth._bump_failure(client_ip)  # only failed attempts are recorded
         raise HTTPException(status_code=401, detail="invalid credentials")
     token = auth.create_session(row["id"])
     auth.reset_failures(client_ip)
