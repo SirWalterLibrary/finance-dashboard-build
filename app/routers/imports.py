@@ -66,7 +66,7 @@ def import_file(account_id: int, file: UploadFile, user: dict = Depends(current_
                     tx_ids.append(cur.lastrowid)
                 else:
                     skipped_duplicates += 1
-        if tx_ids and rules is not None:
+        if tx_ids and rules is not None and hasattr(rules, "apply_rules"):
             rules.apply_rules(con, tx_ids)
     finally:
         con.close()
