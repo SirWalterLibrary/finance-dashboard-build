@@ -17,7 +17,7 @@ run_all.sh       runs unchecked tasks in order; stops at the first failure
 ## How to use
 1. Copy this whole folder to your Nobara PC, e.g. `~/projects/finances`, then `cd` into it and `git init`.
 2. Make sure Pi works with your Ollama model (`pi` interactive first). Pi auto-loads `AGENTS.md` from the current directory.
-3. Run tasks one by one: `./run_task.sh T00`, then T01 … Read `PROGRESS.md` after each. Commit happens automatically per task.
+3. Run tasks one by one: `Read SPEC.md and tasks/T0#-*.md. Do exactly that task, following AGENTS.md. Stop when done.`. Commit happens automatically per task.
 4. After T10 the backend works (curl check). After T16 you can open the app in a browser; every frontend task lists a USER CHECK.
 5. If a task fails or the model loops: fix nothing by hand yet — rerun the same task (`git reset --hard` first if it left a mess).
    If it fails twice, split that task file into two smaller ones.
