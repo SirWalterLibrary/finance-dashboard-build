@@ -20,6 +20,17 @@ from .routers import transactions as transactions_router
 def create_app() -> FastAPI:
     init_db()
     app = FastAPI(title="Finance Dashboard")
+
+    @app.middleware("http")
+    async def security_headers(request, call_next):
+        response = await call_next(request)
+        if request.url.path.startswith("/api/") or request.url.path == "/api":
+            response.headers["X-Content-Type-Options"] = "nosniff"
+            response.headers["X-Frame-Options"] = "DENY"
+            response.headers["Referrer-Policy"] = "no-referrer"
+            response.headers["Cache-Control"] = "no-store"
+        return response
+
     app.include_router(auth_router.router)
     app.include_router(accounts_router.router)
     app.include_router(budgets_router.router)
