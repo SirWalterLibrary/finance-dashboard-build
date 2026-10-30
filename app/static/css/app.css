@@ -329,6 +329,101 @@ label.check input {
   margin: 0;
 }
 
+/* Transactions page */
+.filters {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 14px;
+  align-items: end;
+}
+
+.filters .chips {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.chip {
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-size: 15px;
+  border: 1px dashed var(--line);
+  color: var(--text-dim);
+  background: transparent;
+}
+
+.chip.active {
+  background: var(--accent);
+  border: 1px solid var(--accent);
+  color: #fff;
+}
+
+td.desc {
+  max-width: 340px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: 999px;
+  padding: 4px 12px;
+  font: inherit;
+  font-size: 15px;
+  cursor: pointer;
+  background: transparent;
+}
+
+.pill-auto {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  opacity: 0.75;
+}
+
+.pill-select {
+  width: auto;
+  margin: 0;
+  padding: 6px 10px;
+}
+
+.btn.small {
+  font-size: 14px;
+  padding: 5px 10px;
+}
+
+.pager {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.pager .btn:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: 28px;
+  transform: translateX(-50%);
+  background: var(--bg-card);
+  color: var(--text);
+  border: 1px solid var(--accent);
+  border-radius: 12px;
+  padding: 12px 20px;
+  font-size: 16px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  z-index: 10;
+}
+
 /* Dialogs */
 dlg.dlg,
 dialog.dlg {
