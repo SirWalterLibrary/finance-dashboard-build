@@ -17,6 +17,31 @@ def merchant_key(desc: str) -> str:
     return " ".join(tokens[:n])
 
 
+def ensure_rule(conn, keyword, category_id):
+    """Return the id of an unbounded rule for keyword + category_id.
+
+    Reuses an existing rule with the same normalized keyword, the same
+    category and NULL min_cents/max_cents; otherwise inserts
+    (keyword, category_id) and returns the new id. Raises ValueError for a
+    blank keyword. Does not commit; the caller wraps it in `with conn:`.
+    """
+    kw = norm_desc(keyword)
+    if not kw:
+        raise ValueError("keyword is blank")
+    row = conn.execute(
+        "SELECT id FROM rules WHERE keyword = ? AND category_id = ? "
+        "AND min_cents IS NULL AND max_cents IS NULL",
+        (kw, category_id),
+    ).fetchone()
+    if row is not None:
+        return row["id"]
+    cur = conn.execute(
+        "INSERT INTO rules (keyword, category_id) VALUES (?, ?)",
+        (kw, category_id),
+    )
+    return cur.lastrowid
+
+
 def load_rules(conn):
     """Return all rules, each keyword normalized via norm_desc."""
     rows = conn.execute(
