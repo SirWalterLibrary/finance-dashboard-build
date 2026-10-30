@@ -111,14 +111,41 @@ def generate(today):
     rows.sort(key=lambda r: (r["date"], r["account"], r["description"]))
     return rows
 
+def insert_rows(con, ids, rows):
+    """INSERT OR IGNORE with the same dedupe key as CSV import; returns how many were added."""
+    cats = {r["name"]: r["id"] for r in con.execute("SELECT id, name FROM categories")}
+    seen = {}
+    added = 0
+    with con:
+        for r in rows:
+            norm = norm_desc(r["description"])
+            base = (r["account"], r["date"], r["amount_cents"], norm)
+            n = seen.get(base, 0)
+            seen[base] = n + 1
+            key = hashlib.sha1(f"{r['date']}|{r['amount_cents']}|{norm}|{n}".encode()).hexdigest()
+            explicit = r["category"]
+            cur = con.execute(
+                "INSERT OR IGNORE INTO transactions (account_id, date, description, "
+                "amount_cents, category_id, category_source, dedupe_key) "
+                "VALUES (?, ?, ?, ?, ?, ?, ?)",
+                (ids[r["account"]], r["date"], r["description"], r["amount_cents"],
+                 cats[explicit or "Uncategorized"], "manual" if explicit else "none", key),
+            )
+            added += cur.rowcount
+    return added
+
+
 def main():
     init_db()
     con = connect()
     try:
         ids = seed_accounts(con)
+        added = insert_rows(con, ids, generate(datetime.date.today()))
+        categorized = apply_rules(con)
     finally:
         con.close()
-    print(f"demo users and accounts ready: {sorted(ids)}")
+    print(f"demo data ready: {added} new transactions, {categorized} categorized by rules")
+    print("login: demo1 / demo   (demo2 / demo is the second user)")
 
 
 if __name__ == "__main__":

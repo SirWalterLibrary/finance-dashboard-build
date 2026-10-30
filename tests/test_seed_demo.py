@@ -103,3 +103,64 @@ def test_monthly_savings_transfer_has_both_sides():
     assert len(out) == len(inn) == 6
     assert all(r["amount_cents"] == -50000 for r in out)
     assert all(r["amount_cents"] == 50000 for r in inn)
+
+
+from app.rules import apply_rules
+from app.summary import build_summary
+
+
+def _loaded(con):
+    ids = seed.seed_accounts(con)
+    rows = seed.generate(TODAY)
+    added = seed.insert_rows(con, ids, rows)
+    return rows, added
+
+
+def test_insert_rows_twice_adds_nothing_the_second_time(client):
+    con = connect()
+    try:
+        rows, added = _loaded(con)
+        assert added == len(rows)
+        assert seed.insert_rows(con, seed.seed_accounts(con), rows) == 0
+        assert _count(con, "transactions") == len(rows)
+    finally:
+        con.close()
+
+
+def test_rules_categorize_the_demo_rows_and_leave_mystery_rows(client):
+    con = connect()
+    try:
+        _loaded(con)
+        assert apply_rules(con) > 0
+
+        def sources(like):
+            return {
+                (r["n"], r["s"])
+                for r in con.execute(
+                    "SELECT c.name AS n, t.category_source AS s FROM transactions t "
+                    "JOIN categories c ON c.id = t.category_id WHERE t.description LIKE ?",
+                    (like,),
+                )
+            }
+
+        assert sources("KWIK TRIP%") == {("Transport", "rule")}
+        assert sources("DIRECT DEP%") == {("Income", "rule")}
+        assert sources("AMERICAN EXPRESS ACH PMT") == {("Credit Card Payment", "rule")}
+        assert sources("EMPLOYER REIMBURSEMENT%") == {("Work Reimbursement", "manual")}
+        assert sources("UNKNOWN MERCHANT%") == {("Uncategorized", "none")}
+    finally:
+        con.close()
+
+
+def test_joint_summary_of_demo_data_has_income_spending_and_savings(client):
+    con = connect()
+    try:
+        _loaded(con)
+        apply_rules(con)
+        s = build_summary(con, "(a.owner_user_id IS NULL)", ())
+        assert s["income_cents"] > 0
+        assert s["spending_cents"] > 0
+        assert s["saved_cents"] == 6 * 50000
+        assert s["uncategorized_count"] == 6
+    finally:
+        con.close()
