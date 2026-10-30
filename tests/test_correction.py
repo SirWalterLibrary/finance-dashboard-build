@@ -1,7 +1,9 @@
 import pytest
 
+from conftest import make_user
+
 from app.db import connect
-from app.rules import ensure_rule
+from app.rules import ensure_rule, relabel_similar
 
 
 def _category_id(name):
@@ -101,5 +103,129 @@ def test_blank_keyword_raises_value_error(client):
     try:
         with pytest.raises(ValueError):
             ensure_rule(con, "   ", cat)
+    finally:
+        con.close()
+
+
+def _account(con, owner_user_id):
+    cur = con.execute(
+        "INSERT INTO accounts (name, institution, type, owner_user_id) "
+        "VALUES ('test account', '', 'checking', ?)",
+        (owner_user_id,),
+    )
+    return cur.lastrowid
+
+
+def _tx(con, account_id, description, category_id, source, seq):
+    cur = con.execute(
+        "INSERT INTO transactions "
+        "(account_id, date, description, amount_cents, category_id, "
+        "category_source, dedupe_key) "
+        "VALUES (?, '2024-01-10', ?, ?, ?, ?, ?)",
+        (account_id, description, -1000, category_id, source, f"t{seq}"),
+    )
+    return cur.lastrowid
+
+
+def _state(con, tx_id):
+    row = con.execute(
+        "SELECT category_id, category_source FROM transactions WHERE id = ?",
+        (tx_id,),
+    ).fetchone()
+    return row["category_id"], row["category_source"]
+
+
+def test_relabel_similar_updates_none_rule_llm_rows(client):
+    alice = make_user(client, "alice")
+    unc = _category_id("Uncategorized")
+    trans = _category_id("Transport")
+    con = connect()
+    try:
+        with con:
+            acct = _account(con, None)
+            t1 = _tx(con, acct, "KWIK TRIP #1 SOUTH ST PAUL", unc, "none", 1)
+            t2 = _tx(con, acct, "KWIK TRIP #2", trans, "rule", 2)
+            t3 = _tx(con, acct, "KWIK TRIP #3", trans, "llm", 3)
+        assert relabel_similar(con, alice, "kwik trip", trans, None) == 3
+        for t in (t1, t2, t3):
+            assert _state(con, t) == (trans, "rule")
+    finally:
+        con.close()
+
+
+def test_relabel_similar_manual_row_untouched(client):
+    alice = make_user(client, "alice")
+    trans = _category_id("Transport")
+    con = connect()
+    try:
+        with con:
+            acct = _account(con, None)
+            t = _tx(con, acct, "KWIK TRIP #1", trans, "manual", 1)
+        assert relabel_similar(con, alice, "KWIK TRIP", trans, None) == 0
+        assert _state(con, t) == (trans, "manual")
+    finally:
+        con.close()
+
+
+def test_relabel_similar_exclude_id_untouched_and_not_counted(client):
+    alice = make_user(client, "alice")
+    unc = _category_id("Uncategorized")
+    trans = _category_id("Transport")
+    con = connect()
+    try:
+        with con:
+            acct = _account(con, None)
+            t_keep = _tx(con, acct, "KWIK TRIP #1", unc, "none", 1)
+            t_other = _tx(con, acct, "KWIK TRIP #2", unc, "none", 2)
+        assert relabel_similar(con, alice, "KWIK TRIP", trans, t_keep) == 1
+        assert _state(con, t_keep) == (unc, "none")
+        assert _state(con, t_other) == (trans, "rule")
+    finally:
+        con.close()
+
+
+def test_relabel_similar_no_keyword_row_untouched(client):
+    alice = make_user(client, "alice")
+    unc = _category_id("Uncategorized")
+    trans = _category_id("Transport")
+    con = connect()
+    try:
+        with con:
+            acct = _account(con, None)
+            t = _tx(con, acct, "SAMS CLUB FUEL #1", unc, "none", 1)
+        assert relabel_similar(con, alice, "KWIK TRIP", trans, None) == 0
+        assert _state(con, t) == (unc, "none")
+    finally:
+        con.close()
+
+
+def test_relabel_similar_ignores_other_users_personal_account(client):
+    alice = make_user(client, "alice")
+    bob = make_user(client, "bob")
+    unc = _category_id("Uncategorized")
+    trans = _category_id("Transport")
+    con = connect()
+    try:
+        with con:
+            joint = _account(con, None)
+            bob_personal = _account(con, bob)
+            t_joint = _tx(con, joint, "KWIK TRIP #1", unc, "none", 1)
+            t_bob = _tx(con, bob_personal, "KWIK TRIP #9", unc, "none", 9)
+        assert relabel_similar(con, alice, "KWIK TRIP", trans, None) == 1
+        assert _state(con, t_joint) == (trans, "rule")
+        assert _state(con, t_bob) == (unc, "none")
+    finally:
+        con.close()
+
+
+def test_relabel_similar_no_matches_returns_zero(client):
+    alice = make_user(client, "alice")
+    trans = _category_id("Transport")
+    con = connect()
+    try:
+        with con:
+            acct = _account(con, None)
+            _tx(con, acct, "SAMS CLUB FUEL #1", _category_id("Uncategorized"), "none", 1)
+        assert relabel_similar(con, alice, "KWIK TRIP", trans, None) == 0
     finally:
         con.close()

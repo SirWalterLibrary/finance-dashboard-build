@@ -2,6 +2,7 @@
 import re
 
 from app.csvparse import norm_desc
+from app.scope import owner_clause
 
 _AUTH_RE = re.compile(r"^.*?AUTHORIZED ON \d\d/\d\d ")
 
@@ -110,3 +111,45 @@ def match_rule(rules, norm_description, amount_cents):
         if best is None or rank > best[0]:
             best = (rank, r)
     return None if best is None else best[1]
+
+
+def relabel_similar(conn, user_id, keyword, category_id, exclude_id):
+    """Relabel similar transactions to the category the user just fixed.
+
+    Updates every transaction in the user's combined scope (joint accounts
+    plus their personal accounts) whose description contains the normalized
+    keyword, excluding the row with `exclude_id`. Only rows with
+    category_source 'none', 'rule' or 'llm' are relabeled to `category_id`
+    with source 'rule'; 'manual' rows are never touched. Returns the number
+    of rows updated.
+    """
+    kw = norm_desc(keyword)
+    if not kw:
+        return 0
+    clause, params = owner_clause("combined", user_id, "a.owner_user_id")
+    rows = conn.execute(
+        f"""
+        SELECT t.id, t.description
+        FROM transactions AS t
+        JOIN accounts AS a ON a.id = t.account_id
+        WHERE {clause}
+          AND t.category_source IN ('none', 'rule', 'llm')
+        """,
+        params,
+    ).fetchall()
+    ids = [
+        r["id"]
+        for r in rows
+        if kw in norm_desc(r["description"]) and r["id"] != exclude_id
+    ]
+    if ids:
+        with conn:
+            conn.execute(
+                f"""
+                UPDATE transactions
+                SET category_id = ?, category_source = 'rule'
+                WHERE id IN ({','.join('?' * len(ids))})
+                """,
+                [category_id] + ids,
+            )
+    return len(ids)
