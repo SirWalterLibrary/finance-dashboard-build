@@ -240,6 +240,119 @@ select {
   margin: 0;
 }
 
+/* Badges */
+.badge {
+  display: inline-block;
+  background: var(--bg-inset);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 2px 10px;
+  font-size: 14px;
+  color: var(--text-dim);
+  text-transform: capitalize;
+  vertical-align: middle;
+}
+
+.badge.joint {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.badge.personal {
+  border-color: var(--warn);
+  color: var(--warn);
+}
+
+/* Account cards */
+.account-head {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.account-head h2 {
+  margin: 0;
+  font-size: 22px;
+}
+
+.dim {
+  color: var(--text-dim);
+  margin: 0 0 12px;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.actions .btn {
+  font-size: 15px;
+  padding: 8px 12px;
+}
+
+.btn.danger {
+  border-color: var(--spend);
+  color: var(--spend);
+}
+
+.btn.danger:hover {
+  background: var(--spend);
+  color: #fff;
+}
+
+.result {
+  margin: 12px 0 0;
+}
+
+.result p {
+  margin: 0 0 8px;
+}
+
+.result details ul {
+  margin: 8px 0;
+}
+
+label.check {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--text);
+}
+
+label.check input {
+  width: auto;
+  margin: 0;
+}
+
+/* Dialogs */
+dlg.dlg,
+dialog.dlg {
+  width: min(92vw, 480px);
+  background: var(--bg-card);
+  color: var(--text);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 24px;
+}
+
+.dlg::backdrop {
+  background: rgba(0, 0, 0, 0.55);
+}
+
+.dlg h2 {
+  font-size: 22px;
+  margin: 0 0 16px;
+}
+
+.dlg form .actions {
+  justify-content: flex-end;
+}
+
 /* Phone widths */
 @media (max-width: 640px) {
   body {
