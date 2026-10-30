@@ -15,7 +15,10 @@
 - [x] T08b relabel_similar helper
 - [x] T08c PATCH apply_to_similar
 - [x] T08d PATCH extra tests
-- [ ] T09 Summary API
+- [x] T09a build_summary totals
+- [ ] T09b by_category + uncategorized_count
+- [ ] T09c by_month
+- [ ] T09d GET /api/summary
 - [ ] T10 Demo seed script
 - [ ] T11 LLM categorizer (Ollama)
 - [ ] T12 Budgets API
@@ -60,3 +63,4 @@
 - T08b: relabel_similar helper — tests/test_correction.py extended FIRST (6 cases with plain-SQL `_account`/`_tx` helpers on a joint account: none+rule+llm KWIK TRIP rows all relabeled with return 3, manual row untouched, exclude_id row untouched and not counted, SAMS CLUB row untouched, privacy: user B's personal-account KWIK TRIP row unchanged when user A calls (two users via `make_user`), no matches -> 0), verified red (ImportError), then app/rules.py: relabel_similar(conn, user_id, keyword, category_id, exclude_id) — kw = norm_desc (blank -> 0), candidate SELECT t.id, t.description JOIN accounts with owner_clause('combined', user_id, 'a.owner_user_id') AND category_source IN ('none','rule','llm'), Python-side `kw in norm_desc(description)` match, exclude_id skipped, single UPDATE ... SET category_id=?, category_source='rule' WHERE id IN (...) inside one `with conn:`, returns count. `make test` 102 passed.
 - T08c: PATCH apply_to_similar — task's 3 test cases appended FIRST to tests/test_correction.py via bash heredoc (learn-rule: t1->manual, t2/t3 KWIK TRIP none rows -> rule, manual+sams untouched, rule row KWIK TRIP/food, updated=3; no-apply: t2->manual, t3 untouched, rules count unchanged, updated=1 rule_id None; blank keyword: 400 and t2 untouched), verified red (3 failed: 'updated' key missing), then the task's 4 edits in app/routers/transactions.py: PatchIn gains apply_to_similar/keyword + _learn helper (norm_desc(keyword) or merchant_key(desc), blank -> 400, ensure_rule + relabel_similar), norm_desc import, 404 moved inside the `with con:` block so an HTTPException rolls the correction back, response gains updated + rule_id. NOTE contradiction: task says the old patch test in tests/test_transactions.py is "unchanged", but its exact key-set assertion (set(item) == ITEM_KEYS) is incompatible with the task's own mandated Edit 4 (added keys); per AGENTS.md rule 6 expanded that one assertion to ITEM_KEYS | {"updated", "rule_id"} (minimal, no other test changes). `make test` 105 passed.
 - T08d: PATCH extra tests — task's 3 test cases appended to tests/test_correction.py via bash heredoc (explicit keyword 'kwik' -> rule KWIK/food; patching twice reuses the same rule id with exactly one KWIK TRIP/food rule row; later import of KWIK TRIP #999 picks up the learned rule via match_rule tie-break on higher id). No red step expected and none needed — `make test` 108 passed on first run (105 pre-existing + 3 new).
+- T09a: build_summary totals — split PROGRESS T09 line into T09a-d; tests/test_summary.py written FIRST with the task's 6 cases, verified red (ModuleNotFoundError app.summary), then app/summary.py: _rows (single SELECT tx JOIN accounts JOIN categories with owner clause + inclusive from_/to) + _totals (income/reimbursement/expense->gross/savings-from-non-savings-account only; transfer kind ignored) + build_summary returning the 6 cents/count keys with spending = gross - reimbursed, net = income - spending. `make test` 114 passed (108 pre-existing + 6 new).
