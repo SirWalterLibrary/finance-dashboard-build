@@ -17,7 +17,7 @@
 - [x] T08d PATCH extra tests
 - [x] T09a build_summary totals
 - [x] T09b by_category + uncategorized_count
-- [ ] T09c by_month
+- [x] T09c by_month
 - [ ] T09d GET /api/summary
 - [ ] T10 Demo seed script
 - [ ] T11 LLM categorizer (Ollama)
@@ -65,3 +65,4 @@
 - T08d: PATCH extra tests — task's 3 test cases appended to tests/test_correction.py via bash heredoc (explicit keyword 'kwik' -> rule KWIK/food; patching twice reuses the same rule id with exactly one KWIK TRIP/food rule row; later import of KWIK TRIP #999 picks up the learned rule via match_rule tie-break on higher id). No red step expected and none needed — `make test` 108 passed on first run (105 pre-existing + 3 new).
 - T09a: build_summary totals — split PROGRESS T09 line into T09a-d; tests/test_summary.py written FIRST with the task's 6 cases, verified red (ModuleNotFoundError app.summary), then app/summary.py: _rows (single SELECT tx JOIN accounts JOIN categories with owner clause + inclusive from_/to) + _totals (income/reimbursement/expense->gross/savings-from-non-savings-account only; transfer kind ignored) + build_summary returning the 6 cents/count keys with spending = gross - reimbursed, net = income - spending. `make test` 114 passed (108 pre-existing + 6 new).
 - T09b: by_category + uncategorized_count — task's 5 test cases appended FIRST to tests/test_summary.py via heredoc, verified red (KeyError by_category/uncategorized_count), then app/summary.py replaced per task: _by_category (expense-kind rows only, gross cents, zero rows omitted, sorted cents desc then name, pct = cents/gross*100 rounded to 1 decimal) + build_summary gains uncategorized_count (rows named "Uncategorized") and by_category. `make test` 119 passed (114 pre-existing + 5 new).
+- T09c: by_month — task's 3 test cases appended FIRST to tests/test_summary.py via heredoc, verified red (KeyError by_month), then app/summary.py replaced per task: _by_month (one entry per calendar month YYYY-MM in range, sorted ascending, income/spending(=gross-reimbursed)/reimbursed cents + by_category {name: gross cents} with zero entries omitted; transfer-only months listed with zeros + {}) + build_summary gains by_month. `make test` 122 passed (119 pre-existing + 3 new).

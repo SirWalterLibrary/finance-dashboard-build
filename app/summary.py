@@ -54,6 +54,29 @@ def _by_category(rows, gross):
     return out
 
 
+def _by_month(rows):
+    months = {}
+    for r in rows:
+        months.setdefault(r["date"][:7], []).append(r)
+    out = []
+    for month in sorted(months):
+        income, reimbursed, gross, _ = _totals(months[month])
+        cats = {}
+        for r in months[month]:
+            if r["ckind"] == "expense":
+                cats[r["cname"]] = cats.get(r["cname"], 0) - r["amount_cents"]
+        out.append(
+            {
+                "month": month,
+                "income_cents": income,
+                "spending_cents": gross - reimbursed,
+                "reimbursed_cents": reimbursed,
+                "by_category": {k: v for k, v in cats.items() if v != 0},
+            }
+        )
+    return out
+
+
 def build_summary(conn, clause, params, from_=None, to=None):
     """clause/params come from scope.owner_clause(scope, user_id, "a.owner_user_id")."""
     rows = _rows(conn, clause, params, from_, to)
@@ -68,4 +91,5 @@ def build_summary(conn, clause, params, from_=None, to=None):
         "tx_count": len(rows),
         "uncategorized_count": sum(1 for r in rows if r["cname"] == "Uncategorized"),
         "by_category": _by_category(rows, gross),
+        "by_month": _by_month(rows),
     }

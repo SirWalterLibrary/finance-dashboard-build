@@ -139,3 +139,44 @@ def test_uncategorized_count(client):
         ("2026-01-07", -300, "Groceries"),
     ])
     assert _summary()["uncategorized_count"] == 2
+
+
+def test_by_month_ascending_with_per_month_numbers(client):
+    _seed([
+        ("2026-02-03", -5000, "Groceries"),
+        ("2026-02-10", 2000, "Work Reimbursement"),
+        ("2026-01-05", -10000, "Groceries"),
+        ("2026-01-06", 50000, "Income"),
+    ])
+    assert _summary()["by_month"] == [
+        {"month": "2026-01", "income_cents": 50000, "spending_cents": 10000,
+         "reimbursed_cents": 0, "by_category": {"Groceries": 10000}},
+        {"month": "2026-02", "income_cents": 0, "spending_cents": 3000,
+         "reimbursed_cents": 2000, "by_category": {"Groceries": 5000}},
+    ]
+
+
+def test_by_month_totals_match_overall(client):
+    _seed([
+        ("2026-01-05", -10000, "Groceries"),
+        ("2026-01-06", 50000, "Income"),
+        ("2026-02-03", -5000, "Housing"),
+        ("2026-02-04", 2500, "Groceries"),
+        ("2026-02-10", 2000, "Work Reimbursement"),
+        ("2026-03-01", -700, "Fees"),
+    ])
+    s = _summary()
+    months = s["by_month"]
+    assert sum(m["income_cents"] for m in months) == s["income_cents"]
+    assert sum(m["spending_cents"] for m in months) == s["spending_cents"]
+    assert sum(m["reimbursed_cents"] for m in months) == s["reimbursed_cents"]
+    month_cats = sum(v for m in months for v in m["by_category"].values())
+    assert month_cats == sum(c["cents"] for c in s["by_category"])
+
+
+def test_month_with_only_transfers_is_listed_with_zeros(client):
+    _seed([("2026-03-05", -20000, "Credit Card Payment")])
+    assert _summary()["by_month"] == [
+        {"month": "2026-03", "income_cents": 0, "spending_cents": 0,
+         "reimbursed_cents": 0, "by_category": {}}
+    ]
