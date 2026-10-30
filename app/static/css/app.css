@@ -658,6 +658,72 @@ tr.clickable:hover td {
   margin-top: 12px;
 }
 
+/* Forecast page */
+.fc-inputs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+}
+
+.fc-inputs select {
+  width: auto;
+}
+
+.fc-inputs input {
+  width: 160px;
+  margin-top: 0;
+}
+
+.fc-verdict {
+  margin: 12px 0 0;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.event-groups h2 {
+  font-size: 18px;
+  margin: 18px 0 6px;
+}
+
+.event-groups h2:first-child {
+  margin-top: 0;
+}
+
+.event-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.event-row:last-child {
+  border-bottom: 0;
+}
+
+.event-name {
+  font-weight: 600;
+}
+
+.event-desc {
+  flex: 1;
+  min-width: 200px;
+  color: var(--text-dim);
+  font-size: 15px;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 14px;
+}
+
+.dlg h3 {
+  font-size: 17px;
+  margin: 14px 0 4px;
+}
+
 /* Phone widths */
 @media (max-width: 640px) {
   body {
