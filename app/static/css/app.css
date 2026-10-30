@@ -448,6 +448,103 @@ dialog.dlg {
   justify-content: flex-end;
 }
 
+/* Home page */
+.range-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px;
+}
+
+.range-custom {
+  display: flex;
+  align-items: end;
+  gap: 10px;
+}
+
+.range-custom label {
+  font-size: 15px;
+}
+
+.range-custom input {
+  width: auto;
+  margin-top: 0;
+  font-size: 16px;
+  padding: 8px 10px;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.stat-label {
+  font-size: 14px;
+  letter-spacing: 0.05em;
+  color: var(--text-dim);
+}
+
+.stat-value {
+  font-size: 28px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.stat-sub {
+  font-size: 14px;
+  color: var(--text-dim);
+}
+
+.review-link {
+  margin: -12px 0 24px;
+}
+
+.home-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+.view-seg {
+  margin-bottom: 16px;
+}
+
+.chart-wrap {
+  position: relative;
+  height: 340px;
+}
+
+tr.clickable {
+  cursor: pointer;
+}
+
+tr.clickable:hover td {
+  background: var(--bg-inset);
+}
+
+.dot {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+
+.card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.card-head h2 {
+  margin: 0;
+  font-size: 22px;
+}
+
 /* Phone widths */
 @media (max-width: 640px) {
   body {
@@ -469,5 +566,13 @@ dialog.dlg {
 
   .card {
     padding: 16px;
+  }
+
+  .home-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .chart-wrap {
+    height: 280px;
   }
 }
