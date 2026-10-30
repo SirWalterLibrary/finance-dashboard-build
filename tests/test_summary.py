@@ -94,3 +94,48 @@ def test_empty_database_is_all_zero(client):
     for key in ("income_cents", "spending_cents", "reimbursed_cents",
                 "net_cents", "saved_cents", "tx_count"):
         assert s[key] == 0
+
+
+def test_by_category_is_gross_sorted_with_pct(client):
+    _seed([
+        ("2026-01-05", -10000, "Groceries"),
+        ("2026-01-05", 2500, "Groceries"),
+        ("2026-01-06", -30000, "Housing"),
+        ("2026-01-07", 50000, "Income"),
+        ("2026-01-08", -20000, "Credit Card Payment"),
+        ("2026-01-09", 4000, "Work Reimbursement"),
+    ])
+    s = _summary()
+    got = [(c["name"], c["cents"], c["pct"]) for c in s["by_category"]]
+    assert got == [("Housing", 30000, 80.0), ("Groceries", 7500, 20.0)]
+    assert set(s["by_category"][0]) == {"category_id", "name", "color", "cents", "pct"}
+    # by_category is gross; the reimbursement only lowers spending_cents
+    assert sum(c["cents"] for c in s["by_category"]) == 37500
+    assert s["spending_cents"] == 33500
+
+
+def test_by_category_zero_rows_omitted_and_empty_ok(client):
+    assert _summary()["by_category"] == []
+    _seed([("2026-01-05", -1000, "Groceries"), ("2026-01-06", 1000, "Groceries")])
+    assert _summary()["by_category"] == []
+
+
+def test_by_category_pct_one_decimal_and_tie_order(client):
+    _seed([("2026-01-05", -1000, "Groceries"), ("2026-01-05", -2000, "Housing")])
+    got = [(c["name"], c["pct"]) for c in _summary()["by_category"]]
+    assert got == [("Housing", 66.7), ("Groceries", 33.3)]
+
+
+def test_equal_amounts_sort_by_name(client):
+    _seed([("2026-01-05", -1000, "Groceries"), ("2026-01-05", -1000, "Fees")])
+    names = [c["name"] for c in _summary()["by_category"]]
+    assert names == ["Fees", "Groceries"]
+
+
+def test_uncategorized_count(client):
+    _seed([
+        ("2026-01-05", -100, "Uncategorized"),
+        ("2026-01-06", -200, "Uncategorized"),
+        ("2026-01-07", -300, "Groceries"),
+    ])
+    assert _summary()["uncategorized_count"] == 2
