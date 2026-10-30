@@ -48,6 +48,69 @@ def seed_accounts(con):
                 ids[key] = row["id"]
     return ids
 
+def _months(today):
+    """First day of each of the last six calendar months (current one included), oldest first."""
+    out = []
+    year, month = today.year, today.month
+    for _ in range(6):
+        out.append(datetime.date(year, month, 1))
+        month -= 1
+        if month == 0:
+            month, year = 12, year - 1
+    return out[::-1]
+
+
+def generate(today):
+    """FAKE transactions for the last six calendar months, deterministic, oldest first.
+
+    Each row: {account, date (ISO), description, amount_cents, category}. category is None
+    when a seed rule should categorize the row, or a category name set by hand.
+    """
+    rnd = random.Random(1)
+    rows = []
+
+    def add(account, date, desc, cents, category=None):
+        if date <= today:
+            rows.append({"account": account, "date": date.isoformat(),
+                         "description": desc, "amount_cents": cents, "category": category})
+
+    months = _months(today)
+    payday = today - datetime.timedelta(days=(today.weekday() - 4) % 7)  # latest Friday
+    while payday >= months[0]:
+        add("joint_checking", payday, "DIRECT DEP DEMO CORP PAYROLL", 185000)
+        payday -= datetime.timedelta(days=14)
+
+    for first in months:
+        def day(n):
+            return first.replace(day=n)
+
+        add("joint_checking", day(1), "RENT ACH DEMO PROPERTIES", -175000, "Housing")
+        add("joint_checking", day(5), "XCEL ENERGY", -rnd.randrange(8000, 12001))
+        add("joint_checking", day(10), "QUANTUM FIBER", -6500)
+        for n in (4, 11, 18, 25):
+            add("joint_checking", day(n), "WM SUPERCENTER #1234", -rnd.randrange(5000, 15001))
+        for n in (3, 12, 22):
+            add("joint_checking", day(n), "KWIK TRIP #178", -rnd.randrange(3000, 6001))
+        for n in (6, 13, 19, 27):
+            add("joint_checking", day(n), "LOCAL DINER", -rnd.randrange(1500, 4501), "Food & Dining")
+        add("joint_checking", day(15), "UNKNOWN MERCHANT 77", -rnd.randrange(1000, 3001))
+        add("joint_checking", day(20), "WAY2SAVE TRANSFER", -50000)
+        add("joint_savings", day(20), "WAY2SAVE TRANSFER", 50000)
+        add("personal_checking", day(3), "ZELLE TO MAMA", -5000)
+
+        total = 0
+        for n in (2, 6, 9, 14, 21):
+            desc = rnd.choice(["AMAZON.COM DEMO", "SHELL SERVICE 442", "STEAM PURCHASE", "WAL-MART #556"])
+            cents = rnd.randrange(2000, 15001)
+            add("amex", day(n), desc, -cents)
+            total += cents
+        add("personal_checking", day(25), "AMERICAN EXPRESS ACH PMT", -total)
+        add("amex", day(25), "AUTOPAY PAYMENT", total)
+        add("personal_checking", day(25), "EMPLOYER REIMBURSEMENT DEMO", total, "Work Reimbursement")
+
+    rows.sort(key=lambda r: (r["date"], r["account"], r["description"]))
+    return rows
+
 def main():
     init_db()
     con = connect()

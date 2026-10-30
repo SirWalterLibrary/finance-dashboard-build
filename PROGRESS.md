@@ -20,7 +20,7 @@
 - [x] T09c by_month
 - [x] T09d GET /api/summary
 - [x] T10a demo users + accounts
-- [ ] T10b demo transaction generator
+- [x] T10b demo transaction generator
 - [ ] T10c insert demo transactions + make seed
 - [ ] T11 LLM categorizer (Ollama)
 - [ ] T12 Budgets API
@@ -70,3 +70,4 @@
 - T09c: by_month — task's 3 test cases appended FIRST to tests/test_summary.py via heredoc, verified red (KeyError by_month), then app/summary.py replaced per task: _by_month (one entry per calendar month YYYY-MM in range, sorted ascending, income/spending(=gross-reimbursed)/reimbursed cents + by_category {name: gross cents} with zero entries omitted; transfer-only months listed with zeros + {}) + build_summary gains by_month. `make test` 122 passed (119 pre-existing + 3 new).
 - T09d: GET /api/summary — task's 5 test cases appended FIRST to tests/test_summary.py via heredoc, verified red (5 failed: 404 no route), then app/routers/summary.py (APIRouter prefix=/api: GET /summary with scope default joint, `from` default = first day of month 5 months back (six calendar months incl. current), `to` unlimited, bad from/to or scope -> 400 via owner_clause ValueError, build_summary per T09a-c) + 2 edits in app/main.py to include the router. `make test` 127 passed (122 pre-existing + 5 new).
 - T10a: demo users + accounts — tests/test_seed_demo.py written FIRST with the task's 2 cases, verified red (FileNotFoundError: scripts/seed_demo.py), then scripts/seed_demo.py per task: ACCOUNTS table (joint_checking/joint_savings joint NULL-owner, personal_checking/amex owned by demo1, amex type=credit invert_amounts=1, opening balances in cents) + seed_accounts(con) idempotent (users demo1/demo2 password 'demo', accounts by name lookup, single `with con:` commit, returns {key: id}) + main() for `make seed`. Simplest reading noted: task-mandated exact code used, no changes. `make test` 129 passed (127 pre-existing + 2 new).
+- T10b: demo transaction generator — task's 6 test cases appended FIRST to tests/test_seed_demo.py via heredoc, verified red (AttributeError: no `generate`), then scripts/seed_demo.py replaced per task: `_months(today)` (six calendar months, oldest first) + `generate(today)` — deterministic `random.Random(1)`, pure (no DB), rows {account,date,description,amount_cents,category} sorted oldest first; biweekly DIRECT DEP from latest Friday back through the window, monthly rent/energy/fiber/groceries/fuel/dining/one UNKNOWN MERCHANT 77 left uncategorizable, WAY2SAVE 50000-cents both sides, 5 AMEX purchases + ACH PMT/AUTOPAY PAYMENT/EMPLOYER REIMBURSEMENT all equal the month's purchases, future-dated rows dropped by `add`. `make test` 135 passed (129 pre-existing + 6 new).
