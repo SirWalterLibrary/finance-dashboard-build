@@ -9,6 +9,7 @@ from .routers import auth as auth_router
 from .routers import categories as categories_router
 from .routers import imports as imports_router
 from .routers import rules as rules_router
+from .routers import summary as summary_router
 from .routers import transactions as transactions_router
 
 
@@ -20,6 +21,7 @@ def create_app() -> FastAPI:
     app.include_router(categories_router.router)
     app.include_router(imports_router.router)
     app.include_router(rules_router.router)
+    app.include_router(summary_router.router)
     app.include_router(transactions_router.router)
 
     @app.get("/api/health")

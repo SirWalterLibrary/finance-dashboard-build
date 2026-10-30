@@ -180,3 +180,65 @@ def test_month_with_only_transfers_is_listed_with_zeros(client):
         {"month": "2026-03", "income_cents": 0, "spending_cents": 0,
          "reimbursed_cents": 0, "by_category": {}}
     ]
+
+
+import datetime
+
+from conftest import login, make_user
+
+
+def _day(days_ago=0):
+    return (datetime.date.today() - datetime.timedelta(days=days_ago)).isoformat()
+
+
+def test_summary_requires_login(client):
+    assert client.get("/api/summary").status_code == 401
+
+
+def test_summary_response_shape(client):
+    make_user(client, "alice")
+    login(client, "alice")
+    body = client.get("/api/summary").json()
+    assert set(body) == {
+        "income_cents", "spending_cents", "reimbursed_cents", "net_cents",
+        "saved_cents", "tx_count", "uncategorized_count", "by_category", "by_month",
+    }
+
+
+def test_summary_default_range_is_about_six_months(client):
+    make_user(client, "alice")
+    login(client, "alice")
+    _seed([(_day(0), -1000, "Groceries"), (_day(250), -5000, "Groceries")])
+    assert client.get("/api/summary").json()["spending_cents"] == 1000
+    assert client.get("/api/summary?from=2000-01-01").json()["spending_cents"] == 6000
+    assert client.get(f"/api/summary?from=2000-01-01&to={_day(100)}").json()["spending_cents"] == 5000
+
+
+def test_summary_scope_privacy(client):
+    alice = make_user(client, "alice")
+    bob = make_user(client, "bob")
+    today = _day(0)
+    _seed([(today, -1000, "Groceries")])
+    _seed([(today, -2000, "Groceries")], owner=alice)
+    _seed([(today, -4000, "Groceries")], owner=bob)
+
+    def spent(scope=None):
+        url = "/api/summary" + (f"?scope={scope}" if scope else "")
+        return client.get(url).json()["spending_cents"]
+
+    login(client, "alice")
+    assert spent() == 1000            # default scope is joint
+    assert spent("joint") == 1000
+    assert spent("personal") == 2000
+    assert spent("combined") == 3000
+    login(client, "bob")
+    assert spent("personal") == 4000
+    assert spent("combined") == 5000
+
+
+def test_summary_bad_dates_and_scope_are_400(client):
+    make_user(client, "alice")
+    login(client, "alice")
+    assert client.get("/api/summary?from=banana").status_code == 400
+    assert client.get("/api/summary?to=2026-13-45").status_code == 400
+    assert client.get("/api/summary?scope=nope").status_code == 400
