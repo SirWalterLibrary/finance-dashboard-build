@@ -1,8 +1,9 @@
-"""Rule endpoints + POST /api/categorize/run (SPEC "Rules").
+"""Rule endpoints + POST /api/categorize/run (SPEC "Rules" + "LLM rules").
 
 Rules are global. Keywords are stored normalized (norm_desc).
-categorize/run applies keyword rules to 'none' rows in the requested
-scope; the LLM step (T11) is not available yet, so by_llm is always 0.
+categorize/run first applies keyword rules to 'none' rows in the requested
+scope, then runs the LLM categorizer (app/llm.py) over the 'none' rows
+still left in scope.
 """
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -11,6 +12,7 @@ from pydantic import BaseModel, Field
 from app.auth import current_user
 from app.db import connect
 from app.csvparse import norm_desc
+from app import llm
 from app.rules import apply_rules
 from app.scope import owner_clause
 
@@ -26,6 +28,17 @@ class RuleIn(BaseModel):
 
 class CategorizeIn(BaseModel):
     scope: str = "joint"
+
+
+def _none_rows_in_scope(con, user_id, scope):
+    """All 'none' rows in the scope, oldest first."""
+    clause, params = owner_clause(scope, user_id, "a.owner_user_id")
+    return con.execute(
+        "SELECT t.* FROM transactions t JOIN accounts a "
+        "ON a.id = t.account_id "
+        f"WHERE t.category_source = 'none' AND {clause} ORDER BY t.id",
+        params,
+    ).fetchall()
 
 
 def _row_item(row) -> dict:
@@ -101,12 +114,10 @@ def delete_rule(rule_id: int, user: dict = Depends(current_user)):
 
 @router.post("/categorize/run")
 def categorize_run(body: CategorizeIn, user: dict = Depends(current_user)):
-    try:
-        clause, params = owner_clause(body.scope, user["id"], "a.owner_user_id")
-    except ValueError:
-        raise HTTPException(400, "scope must be personal, joint, or combined")
+    scope = body.scope
     con = connect()
     try:
+        clause, params = owner_clause(scope, user["id"], "a.owner_user_id")
         ids = [
             r["id"]
             for r in con.execute(
@@ -117,17 +128,17 @@ def categorize_run(body: CategorizeIn, user: dict = Depends(current_user)):
             ).fetchall()
         ]
         changed = apply_rules(con, ids)
-        left = con.execute(
-            "SELECT COUNT(*) AS c FROM transactions t JOIN accounts a "
-            f"ON a.id = t.account_id "
-            f"WHERE t.category_source = 'none' AND {clause}",
-            params,
-        ).fetchone()["c"]
+        # LLM pass over whatever the rules left behind in scope
+        result = llm.categorize_pending(con, _none_rows_in_scope(
+            con, user["id"], scope
+        ))
         return {
             "by_rule": changed,
-            "by_llm": 0,
-            "left": left,
-            "llm_available": False,
+            "by_llm": result["by_llm"],
+            "left": len(_none_rows_in_scope(con, user["id"], scope)),
+            "llm_available": result["llm_available"],
         }
+    except ValueError:
+        raise HTTPException(400, "scope must be personal, joint, or combined")
     finally:
         con.close()
