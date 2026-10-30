@@ -719,6 +719,75 @@ tr.clickable:hover td {
   gap: 0 14px;
 }
 
+/* Rules page */
+.form-flex {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.form-flex .btn {
+  white-space: nowrap;
+  margin-left: auto;
+}
+
+.form-flex label {
+  flex: 1 1 150px;
+}
+
+.f-num {
+  width: 120px;
+  text-align: right;
+}
+
+.form-flex .swatch {
+  width: 44px;
+}
+
+.cat-out p {
+  margin: 12px 0 0;
+}
+
+.cat-offline {
+  color: var(--warn);
+  font-weight: 600;
+}
+
+.editable {
+  border-bottom: 1px dotted var(--line);
+  cursor: pointer;
+  min-height: 1.3em;
+  display: inline-block;
+  padding: 0 2px;
+}
+
+.editable:hover {
+  border-bottom-color: var(--accent);
+}
+
+.editable.empty {
+  color: var(--text-dim);
+  font-style: italic;
+}
+
+.inline-input {
+  width: 100%;
+  max-width: 360px;
+  margin-top: 0;
+  font-size: 16px;
+  padding: 6px 10px;
+}
+
+.swatch {
+  width: 34px;
+  height: 34px;
+  padding: 2px;
+  margin-top: 0;
+  cursor: pointer;
+}
+
 .dlg h3 {
   font-size: 17px;
   margin: 14px 0 4px;
@@ -745,6 +814,10 @@ tr.clickable:hover td {
 
   .card {
     padding: 16px;
+  }
+
+  td.desc {
+    max-width: 200px;
   }
 
   .home-grid {
