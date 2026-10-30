@@ -1,0 +1,17 @@
+services:
+  finances:
+    build: .
+    container_name: finances
+    restart: always
+    env_file: .env
+    environment:
+      - TZ=America/New_York
+    volumes:
+      - finances_data:/data
+    networks:
+      - npm_net
+volumes:
+  finances_data:
+networks:
+  npm_net:
+    external: true
