@@ -605,6 +605,59 @@ tr.clickable:hover td {
   padding: 6px 10px;
 }
 
+/* Goals page */
+.card-head .note {
+  margin: 0;
+  color: var(--warn);
+  font-size: 16px;
+}
+
+.goal-card .budget-line {
+  margin-top: 8px;
+  margin-bottom: 6px;
+}
+
+.alloc-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.alloc-row .error {
+  width: 100%;
+}
+
+.alloc-label {
+  color: var(--text-dim);
+  font-size: 15px;
+}
+
+.sim-form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.sim-form select {
+  width: auto;
+}
+
+.sim-form input {
+  width: 160px;
+  margin-top: 0;
+}
+
+.sim-result .sim-text {
+  white-space: pre-wrap;
+}
+
+.sim-result table {
+  margin-top: 12px;
+}
+
 /* Phone widths */
 @media (max-width: 640px) {
   body {
