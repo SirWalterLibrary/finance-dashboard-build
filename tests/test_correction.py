@@ -229,3 +229,95 @@ def test_relabel_similar_no_matches_returns_zero(client):
         assert relabel_similar(con, alice, "KWIK TRIP", trans, None) == 0
     finally:
         con.close()
+
+
+from conftest import login
+
+
+def _patch(client, tx_id, **body):
+    return client.patch(f"/api/transactions/{tx_id}", json=body)
+
+
+def _kwik_rows():
+    unc = _category_id("Uncategorized")
+    trans = _category_id("Transport")
+    con = connect()
+    try:
+        with con:
+            acct = _account(con, None)
+            ids = {
+                "t1": _tx(con, acct, "KWIK TRIP #1", trans, "rule", 1),
+                "t2": _tx(con, acct, "KWIK TRIP #2", unc, "none", 2),
+                "t3": _tx(con, acct, "KWIK TRIP #3", unc, "none", 3),
+                "manual": _tx(con, acct, "KWIK TRIP #4", trans, "manual", 4),
+                "sams": _tx(con, acct, "SAMS CLUB #5", unc, "none", 5),
+            }
+    finally:
+        con.close()
+    return ids
+
+
+def test_patch_apply_to_similar_learns_rule(client, user):
+    login(client, user)
+    unc = _category_id("Uncategorized")
+    trans = _category_id("Transport")
+    food = _category_id("Food & Dining")
+    ids = _kwik_rows()
+    res = _patch(client, ids["t1"], category_id=food, apply_to_similar=True)
+    assert res.status_code == 200
+    body = res.json()
+    assert body["updated"] == 3
+    assert isinstance(body["rule_id"], int)
+    assert body["category_id"] == food
+    assert body["category_source"] == "manual"
+    con = connect()
+    try:
+        assert _state(con, ids["t1"]) == (food, "manual")
+        assert _state(con, ids["t2"]) == (food, "rule")
+        assert _state(con, ids["t3"]) == (food, "rule")
+        assert _state(con, ids["manual"]) == (trans, "manual")
+        assert _state(con, ids["sams"]) == (unc, "none")
+        rule = con.execute(
+            "SELECT keyword, category_id FROM rules WHERE id = ?", (body["rule_id"],)
+        ).fetchone()
+        assert (rule["keyword"], rule["category_id"]) == ("KWIK TRIP", food)
+    finally:
+        con.close()
+
+
+def test_patch_without_apply_to_similar_changes_one_row(client, user):
+    login(client, user)
+    unc = _category_id("Uncategorized")
+    food = _category_id("Food & Dining")
+    ids = _kwik_rows()
+    con = connect()
+    try:
+        rules_before = con.execute("SELECT COUNT(*) AS c FROM rules").fetchone()["c"]
+    finally:
+        con.close()
+    res = _patch(client, ids["t2"], category_id=food)
+    assert res.status_code == 200
+    body = res.json()
+    assert body["updated"] == 1
+    assert body["rule_id"] is None
+    con = connect()
+    try:
+        assert _state(con, ids["t2"]) == (food, "manual")
+        assert _state(con, ids["t3"]) == (unc, "none")
+        assert con.execute("SELECT COUNT(*) AS c FROM rules").fetchone()["c"] == rules_before
+    finally:
+        con.close()
+
+
+def test_patch_blank_keyword_400_and_nothing_changes(client, user):
+    login(client, user)
+    unc = _category_id("Uncategorized")
+    food = _category_id("Food & Dining")
+    ids = _kwik_rows()
+    res = _patch(client, ids["t2"], category_id=food, apply_to_similar=True, keyword="  ")
+    assert res.status_code == 400
+    con = connect()
+    try:
+        assert _state(con, ids["t2"]) == (unc, "none")
+    finally:
+        con.close()

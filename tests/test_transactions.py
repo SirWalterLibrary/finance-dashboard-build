@@ -225,7 +225,7 @@ def test_patch_sets_manual(client):
     res = client.patch(f"/api/transactions/{t}", json={"category_id": groceries})
     assert res.status_code == 200, res.text
     item = res.json()
-    assert set(item) == ITEM_KEYS
+    assert set(item) == ITEM_KEYS | {"updated", "rule_id"}
     assert item["id"] == t
     assert item["category_id"] == groceries
     assert item["category_name"] == "Groceries"

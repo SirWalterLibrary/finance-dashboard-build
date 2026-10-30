@@ -16,6 +16,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
 
 from app.auth import current_user
+from app.csvparse import norm_desc
 from app.db import connect
 from app.scope import owner_clause
 from app import rules
@@ -28,6 +29,23 @@ _SOURCES = ("none", "rule", "llm", "manual")
 
 class PatchIn(BaseModel):
     category_id: int
+    apply_to_similar: bool = False
+    keyword: str | None = None
+
+
+def _learn(con, user: dict, tx_id: int, body: PatchIn) -> tuple:
+    """Learn a rule from a manual correction. Returns (rule_id, updated)."""
+    if not body.apply_to_similar:
+        return None, 1
+    desc = con.execute(
+        "SELECT description FROM transactions WHERE id = ?", (tx_id,)
+    ).fetchone()["description"]
+    kw = norm_desc(body.keyword) if body.keyword is not None else rules.merchant_key(desc)
+    if not kw:
+        raise HTTPException(400, "keyword must not be empty")
+    rule_id = rules.ensure_rule(con, kw, body.category_id)
+    n = rules.relabel_similar(con, user["id"], kw, body.category_id, tx_id)
+    return rule_id, 1 + n
 
 
 def _item(tx: dict, acc_name: str, cat_name: str, cat_color: str) -> dict:
@@ -156,8 +174,9 @@ def patch_transaction(tx_id: int, body: PatchIn, user: dict = Depends(current_us
                 "AND EXISTS (SELECT 1 FROM categories WHERE id = ?)",
                 (body.category_id, tx_id, user["id"], body.category_id),
             )
-        if cur.rowcount == 0:
-            raise HTTPException(404, "transaction not found")
+            if cur.rowcount == 0:
+                raise HTTPException(404, "transaction not found")
+            rule_id, updated = _learn(con, user, tx_id, body)
         row = con.execute(
             "SELECT t.*, a.name AS account_name, c.name AS category_name, "
             "c.color AS category_color "
@@ -171,7 +190,10 @@ def patch_transaction(tx_id: int, body: PatchIn, user: dict = Depends(current_us
         con.close()
     if row is None:
         raise HTTPException(404, "transaction not found")
-    return _item(row, row["account_name"], row["category_name"], row["category_color"])
+    item = _item(row, row["account_name"], row["category_name"], row["category_color"])
+    item["updated"] = updated
+    item["rule_id"] = rule_id
+    return item
 
 
 @router.delete("/transactions/{tx_id}")
