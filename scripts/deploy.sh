@@ -6,7 +6,7 @@ source .env.deploy
 make test
 # Convention: ~/docker is a git repo; .env must be git-ignored; commit before and after deploying.
 ssh "$DEPLOY_HOST" "cd ~/docker && git check-ignore -q finances/.env || { echo 'ABORT: finances/.env is not git-ignored'; exit 1; }; git add -A && (git commit -qm 'finances: pre-deploy' || true)"
-rsync -az --delete \
+rsync -az --delete --exclude 'backups' --exclude 'pi-session-*.html' --exclude '.pytest_cache' --exclude 'node_modules' \
   --exclude '.venv' --exclude 'data' --exclude '.git' --exclude '.env' --exclude '.env.deploy' \
   --exclude 'tasks' --exclude 'assets' --exclude '__pycache__' --exclude 'tests' \
   ./ "$DEPLOY_HOST:$DEPLOY_DIR/"
