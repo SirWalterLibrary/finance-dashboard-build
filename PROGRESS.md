@@ -19,7 +19,9 @@
 - [x] T09b by_category + uncategorized_count
 - [x] T09c by_month
 - [x] T09d GET /api/summary
-- [ ] T10 Demo seed script
+- [x] T10a demo users + accounts
+- [ ] T10b demo transaction generator
+- [ ] T10c insert demo transactions + make seed
 - [ ] T11 LLM categorizer (Ollama)
 - [ ] T12 Budgets API
 - [ ] T13 Goals API + simulate
@@ -67,3 +69,4 @@
 - T09b: by_category + uncategorized_count — task's 5 test cases appended FIRST to tests/test_summary.py via heredoc, verified red (KeyError by_category/uncategorized_count), then app/summary.py replaced per task: _by_category (expense-kind rows only, gross cents, zero rows omitted, sorted cents desc then name, pct = cents/gross*100 rounded to 1 decimal) + build_summary gains uncategorized_count (rows named "Uncategorized") and by_category. `make test` 119 passed (114 pre-existing + 5 new).
 - T09c: by_month — task's 3 test cases appended FIRST to tests/test_summary.py via heredoc, verified red (KeyError by_month), then app/summary.py replaced per task: _by_month (one entry per calendar month YYYY-MM in range, sorted ascending, income/spending(=gross-reimbursed)/reimbursed cents + by_category {name: gross cents} with zero entries omitted; transfer-only months listed with zeros + {}) + build_summary gains by_month. `make test` 122 passed (119 pre-existing + 3 new).
 - T09d: GET /api/summary — task's 5 test cases appended FIRST to tests/test_summary.py via heredoc, verified red (5 failed: 404 no route), then app/routers/summary.py (APIRouter prefix=/api: GET /summary with scope default joint, `from` default = first day of month 5 months back (six calendar months incl. current), `to` unlimited, bad from/to or scope -> 400 via owner_clause ValueError, build_summary per T09a-c) + 2 edits in app/main.py to include the router. `make test` 127 passed (122 pre-existing + 5 new).
+- T10a: demo users + accounts — tests/test_seed_demo.py written FIRST with the task's 2 cases, verified red (FileNotFoundError: scripts/seed_demo.py), then scripts/seed_demo.py per task: ACCOUNTS table (joint_checking/joint_savings joint NULL-owner, personal_checking/amex owned by demo1, amex type=credit invert_amounts=1, opening balances in cents) + seed_accounts(con) idempotent (users demo1/demo2 password 'demo', accounts by name lookup, single `with con:` commit, returns {key: id}) + main() for `make seed`. Simplest reading noted: task-mandated exact code used, no changes. `make test` 129 passed (127 pre-existing + 2 new).
